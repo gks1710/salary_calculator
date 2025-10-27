@@ -52,6 +52,26 @@
             font-size: 16px;
         }
 
+        /* Styling for the radio button group */
+        .radio-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .radio-group label {
+            font-weight: normal;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            margin-right: 5px;
+            width: auto;
+        }
+        
         button {
             width: 100%;
             padding: 12px;
@@ -95,7 +115,7 @@
 
     <div class="form-group">
         <label for="monthlySalary">Monthly Salary (₹):</label>
-        <input type="number" id="monthlySalary" placeholder="e.g., 31000" min="0" value="0">
+        <input type="number" id="monthlySalary" placeholder="e.g., 31000" min="0" value="31000">
     </div>
 
     <div class="form-group">
@@ -104,33 +124,39 @@
     </div>
 
     <div class="form-group">
-        <label for="presentDays">Total Present Days (e.g., 27.5):</label>
-        <input type="number" id="presentDays" placeholder="e.g., 27.5" min="0" step="0.5" value="0">
+        <label>Input Mode:</label>
+        <div class="radio-group">
+            <label for="modePresent">
+                <input type="radio" id="modePresent" name="dayMode" value="present" checked onchange="updateInputLabel()">
+                Total Present Days
+            </label>
+            <label for="modeAbsent">
+                <input type="radio" id="modeAbsent" name="dayMode" value="absent" onchange="updateInputLabel()">
+                Total Absent Days
+            </label>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label id="dayInputLabel" for="dayInput">Total Present Days (e.g., 27.5):</label>
+        <input type="number" id="dayInput" placeholder="e.g., 27.5" min="0" step="0.5" value="27.5">
     </div>
 
-    <button onclick="calculatePayment()">Calculate Payment</button>
-
+    <!-- <button onclick="calculatePayment()">Calculate Payment</button> -->
+    <hr>
     <div class="result-box" id="result">
+        <p>Total Days in Month: <strong id="totalDaysInMonthDisplay">0</strong></p>
+        <p>Calculated Present Days: <strong id="calculatedPresentDaysDisplay">0</strong></p>
         <p>Calculated Daily Income: <strong id="dailyIncomeDisplay">₹ 0.00</strong></p>
         <p>Total Calculated Income: <strong id="totalIncomeDisplay">₹ 0.00</strong></p>
     </div>
 </div>
 
 <script>
-    // Map of month index (0=Jan) to the number of days, defaulting to 31 (for simplicity, assumes non-leap year Feb 28)
+    // --- Configuration Data ---
     const monthDaysMap = {
-        0: 31, // January
-        1: 28, // February (simplified, adjust for leap year if needed)
-        2: 31, // March
-        3: 30, // April
-        4: 31, // May
-        5: 30, // June
-        6: 31, // July
-        7: 31, // August
-        8: 30, // September
-        9: 31, // October
-        10: 30, // November
-        11: 31  // December
+        0: 31, 1: 28, 2: 31, 3: 30, 4: 31, 5: 30, 
+        6: 31, 7: 31, 8: 30, 9: 31, 10: 30, 11: 31
     };
 
     const monthNames = [
@@ -138,94 +164,127 @@
         "July", "August", "September", "October", "November", "December"
     ];
 
+    // --- Utility Functions ---
+
     /**
-     * Populates the month dropdown and auto-selects the current month.
+     * Updates the label for the day input field based on the selected radio button.
+     */
+    function updateInputLabel() {
+        const mode = document.querySelector('input[name="dayMode"]:checked').value;
+        const label = document.getElementById('dayInputLabel');
+        const input = document.getElementById('dayInput');
+        
+        if (mode === 'present') {
+            label.textContent = 'Total Present Days (e.g., 27.5):';
+            input.placeholder = 'e.g., 27.5';
+            input.value = 27.5; // Set example value
+        } else {
+            label.textContent = 'Total Absent Days (e.g., 3.5):';
+            input.placeholder = 'e.g., 3.5';
+            input.value = 3.5; // Set example value
+        }
+        calculatePayment(); // Recalculate after changing mode
+    }
+
+    /**
+     * Populates the month dropdown and handles leap year/auto-selection.
      */
     function setupMonthDropdown() {
         const selectElement = document.getElementById('selectMonth');
         const today = new Date();
-        const currentMonthIndex = today.getMonth(); // 0 for Jan, 9 for Oct
-        
-        // Handle February for the current year
+        const currentMonthIndex = today.getMonth();
         const currentYear = today.getFullYear();
-        if (currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0)) {
-            monthDaysMap[1] = 29; // Leap year February
-        } else {
-            monthDaysMap[1] = 28; // Non-leap year February
+        
+        // Handle February for the current year (Leap Year Check)
+        if (currentMonthIndex <= 1) { // Only need to check if the current month is Jan or Feb
+             if (currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0)) {
+                monthDaysMap[1] = 29; // Leap year February
+            } else {
+                monthDaysMap[1] = 28; // Non-leap year February
+            }
         }
 
         monthNames.forEach((month, index) => {
+            const days = new Date(currentYear, index + 1, 0).getDate(); // Safer way to get days in month
             const option = document.createElement('option');
             // Store both name and number of days in the value attribute
-            option.value = `${index}|${monthDaysMap[index]}`;
-            option.textContent = `${month} (${monthDaysMap[index]} days)`;
+            option.value = days; 
+            option.textContent = `${month} (${days} days)`;
             
             if (index === currentMonthIndex) {
                 option.selected = true;
             }
             selectElement.appendChild(option);
         });
-
-        // Run an initial calculation
-        calculatePayment();
+        
+        // Add event listeners to trigger calculation
+        document.getElementById('monthlySalary').addEventListener('input', calculatePayment);
+        document.getElementById('dayInput').addEventListener('input', calculatePayment);
+        document.getElementById('selectMonth').addEventListener('change', calculatePayment);
+        
+        // Initial setup and calculation
+        updateInputLabel(); // Ensure the label is correct initially
+        calculatePayment(); 
     }
 
     /**
-     * Calculates the daily and total income based on user inputs.
+     * Calculates the daily and total income based on user inputs and mode.
      */
     function calculatePayment() {
         // 1. Get Inputs
         const monthlySalary = parseFloat(document.getElementById('monthlySalary').value);
-        const presentDays = parseFloat(document.getElementById('presentDays').value);
-        const selectedMonthValue = document.getElementById('selectMonth').value;
-
-        const dailyIncomeDisplay = document.getElementById('dailyIncomeDisplay');
-        const totalIncomeDisplay = document.getElementById('totalIncomeDisplay');
+        const inputDays = parseFloat(document.getElementById('dayInput').value);
+        const totalDaysInMonth = parseFloat(document.getElementById('selectMonth').value);
+        const mode = document.querySelector('input[name="dayMode"]:checked').value;
         
-        // Basic validation
-        if (isNaN(monthlySalary) || isNaN(presentDays) || monthlySalary < 0 || presentDays < 0) {
-            dailyIncomeDisplay.textContent = '₹ 0.00';
-            totalIncomeDisplay.textContent = '₹ 0.00';
+        // 2. Initial Validation
+        if (isNaN(monthlySalary) || isNaN(inputDays) || monthlySalary < 0 || totalDaysInMonth === 0) {
+            document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
+            document.getElementById('totalIncomeDisplay').textContent = '₹ 0.00';
             return;
         }
-
-        // 2. Get Total Days in Selected Month (D)
-        // selectedMonthValue is formatted as "index|days" (e.g., "9|31" for October)
-        const totalDaysInMonth = parseFloat(selectedMonthValue.split('|')[1]);
-
-        if (totalDaysInMonth === 0) {
-            dailyIncomeDisplay.textContent = 'Error';
-            totalIncomeDisplay.textContent = 'Error';
-            return;
+        
+        // 3. Determine Actual Present Days (P)
+        let presentDays;
+        
+        if (mode === 'present') {
+            presentDays = inputDays;
+        } else { // mode === 'absent'
+            presentDays = totalDaysInMonth - inputDays;
         }
 
-        // 3. Calculate Daily Income
-        // Daily Income = Monthly Salary / Total Days in Month (D)
+        // Final Validation for present days
+        if (presentDays < 0 || presentDays > totalDaysInMonth) {
+             document.getElementById('calculatedPresentDaysDisplay').textContent = 'Error (Invalid Days)';
+             document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
+             document.getElementById('totalIncomeDisplay').textContent = '₹ 0.00';
+             return;
+        }
+
+        // 4. Calculate Daily Income (D)
+        // Daily Income = Monthly Salary / Total Days in Month
         const dailyIncome = monthlySalary / totalDaysInMonth;
 
-        // 4. Calculate Total Income
-        // Total Income = Daily Income * Present Days
+        // 5. Calculate Total Income (T)
+        // Total Income = Daily Income * Actual Present Days
         const totalIncome = dailyIncome * presentDays;
 
-        // 5. Display Results
+        // 6. Display Results
         const formatter = new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         });
-
-        dailyIncomeDisplay.textContent = formatter.format(dailyIncome);
-        totalIncomeDisplay.textContent = formatter.format(totalIncome);
+        
+        document.getElementById('totalDaysInMonthDisplay').textContent = `${totalDaysInMonth} days`;
+        document.getElementById('calculatedPresentDaysDisplay').textContent = `${presentDays.toFixed(1)} days`;
+        document.getElementById('dailyIncomeDisplay').textContent = formatter.format(dailyIncome);
+        document.getElementById('totalIncomeDisplay').textContent = formatter.format(totalIncome);
     }
 
     // Initialize the application when the page loads
     window.onload = setupMonthDropdown;
-
-    // Attach the calculation function to input changes for a dynamic update
-    document.getElementById('monthlySalary').addEventListener('input', calculatePayment);
-    document.getElementById('presentDays').addEventListener('input', calculatePayment);
-    document.getElementById('selectMonth').addEventListener('change', calculatePayment);
 </script>
 
 </body>
