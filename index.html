@@ -115,7 +115,7 @@
 
     <div class="form-group">
         <label for="monthlySalary">Monthly Salary (₹):</label>
-        <input type="number" id="monthlySalary" placeholder="e.g., 31000" min="0" value="31000">
+        <input type="number" id="monthlySalary" placeholder="e.g., 31000" min="0">
     </div>
 
     <div class="form-group">
@@ -139,11 +139,11 @@
     
     <div class="form-group">
         <label id="dayInputLabel" for="dayInput">Total Present Days (e.g., 27.5):</label>
-        <input type="number" id="dayInput" placeholder="e.g., 27.5" min="0" step="0.5" value="27.5">
+        <input type="number" id="dayInput" placeholder="e.g., 27.5" min="0" step="0.5">
     </div>
 
-    <!-- <button onclick="calculatePayment()">Calculate Payment</button> -->
-    <hr>
+    <button onclick="calculatePayment()">Calculate Payment</button>
+
     <div class="result-box" id="result">
         <p>Total Days in Month: <strong id="totalDaysInMonthDisplay">0</strong></p>
         <p>Calculated Present Days: <strong id="calculatedPresentDaysDisplay">0</strong></p>
@@ -167,21 +167,22 @@
     // --- Utility Functions ---
 
     /**
-     * Updates the label for the day input field based on the selected radio button.
+     * Updates the label and placeholder for the day input field based on the selected radio button.
      */
     function updateInputLabel() {
         const mode = document.querySelector('input[name="dayMode"]:checked').value;
         const label = document.getElementById('dayInputLabel');
         const input = document.getElementById('dayInput');
         
+        // Clear the input value when switching modes to avoid confusion
+        input.value = '';
+
         if (mode === 'present') {
             label.textContent = 'Total Present Days (e.g., 27.5):';
             input.placeholder = 'e.g., 27.5';
-            input.value = 27.5; // Set example value
         } else {
             label.textContent = 'Total Absent Days (e.g., 3.5):';
             input.placeholder = 'e.g., 3.5';
-            input.value = 3.5; // Set example value
         }
         calculatePayment(); // Recalculate after changing mode
     }
@@ -196,18 +197,14 @@
         const currentYear = today.getFullYear();
         
         // Handle February for the current year (Leap Year Check)
-        if (currentMonthIndex <= 1) { // Only need to check if the current month is Jan or Feb
-             if (currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0)) {
-                monthDaysMap[1] = 29; // Leap year February
-            } else {
-                monthDaysMap[1] = 28; // Non-leap year February
-            }
-        }
+        const isLeapYear = currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0);
+        monthDaysMap[1] = isLeapYear ? 29 : 28;
 
         monthNames.forEach((month, index) => {
-            const days = new Date(currentYear, index + 1, 0).getDate(); // Safer way to get days in month
+            // Use the date object for a safer way to get days in month
+            const days = new Date(currentYear, index + 1, 0).getDate(); 
             const option = document.createElement('option');
-            // Store both name and number of days in the value attribute
+            // Store number of days in the value attribute
             option.value = days; 
             option.textContent = `${month} (${days} days)`;
             
@@ -237,10 +234,12 @@
         const totalDaysInMonth = parseFloat(document.getElementById('selectMonth').value);
         const mode = document.querySelector('input[name="dayMode"]:checked').value;
         
-        // 2. Initial Validation
+        // 2. Initial Validation (If inputs are blank or invalid, show zeros/errors)
         if (isNaN(monthlySalary) || isNaN(inputDays) || monthlySalary < 0 || totalDaysInMonth === 0) {
             document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
             document.getElementById('totalIncomeDisplay').textContent = '₹ 0.00';
+            document.getElementById('calculatedPresentDaysDisplay').textContent = '0';
+            document.getElementById('totalDaysInMonthDisplay').textContent = totalDaysInMonth ? `${totalDaysInMonth} days` : '0';
             return;
         }
         
