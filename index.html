@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salary Payment Calculator</title>
+    <title>Dynamic Salary Calculator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,7 +21,7 @@
             border-radius: 12px;
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px; 
         }
 
         h2 {
@@ -32,8 +32,16 @@
             padding-bottom: 10px;
         }
 
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
         .form-group {
             margin-bottom: 20px;
+            flex: 1;
+            min-width: 0;
         }
 
         label {
@@ -56,6 +64,7 @@
         .radio-group {
             display: flex;
             justify-content: space-between;
+            margin-top: 5px;
             margin-bottom: 10px;
         }
 
@@ -72,21 +81,7 @@
             width: auto;
         }
         
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
+        /* Removed button styling */
 
         .result-box {
             margin-top: 25px;
@@ -111,20 +106,22 @@
 <body>
 
 <div class="container">
-    <h2> GKS <BR>💰 Salary Calculator</h2>
+    <h2> GKS <BR>💰 Dynamic Salary Calculator</h2>
 
-    <div class="form-group">
-        <label for="monthlySalary">Monthly Salary (₹):</label>
-        <input type="number" id="monthlySalary" placeholder="e.g., 31000" min="0">
+    <div class="form-row">
+        <div class="form-group">
+            <label for="monthlySalary">Monthly Salary (₹):</label>
+            <input type="number" id="monthlySalary" placeholder="e.g., 31000" min="0">
+        </div>
+
+        <div class="form-group">
+            <label for="selectMonth">Month:</label>
+            <select id="selectMonth"></select>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="selectMonth">Month:</label>
-        <select id="selectMonth"></select>
-    </div>
-
-    <div class="form-group">
-        <label>Input Mode:</label>
+    <div class="form-group" style="margin-bottom: 0;">
+        <label>Enter:</label>
         <div class="radio-group">
             <label for="modePresent">
                 <input type="radio" id="modePresent" name="dayMode" value="present" checked onchange="updateInputLabel()">
@@ -137,35 +134,26 @@
         </div>
     </div>
     
-    <div class="form-group">
+    <div class="form-group" style="margin-top: 10px;">
         <label id="dayInputLabel" for="dayInput">Total Present Days (e.g., 27.5):</label>
         <input type="number" id="dayInput" placeholder="e.g., 27.5" min="0" step="0.5">
     </div>
 
-    <!-- <button onclick="calculatePayment()">Calculate Payment</button> -->
-	<hr>
-
     <div class="result-box" id="result">
         <p>Total Days in Month: <strong id="totalDaysInMonthDisplay">0</strong></p>
         <p>Calculated Present Days: <strong id="calculatedPresentDaysDisplay">0</strong></p>
+        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 10px 0;">
         <p>Calculated Daily Income: <strong id="dailyIncomeDisplay">₹ 0.00</strong></p>
-        <p>Total Calculated Income: <strong id="totalIncomeDisplay">₹ 0.00</strong></p>
+        <p>Final Total Income: <strong id="totalIncomeDisplay">₹ 0.00</strong></p>
     </div>
 </div>
 
 <script>
     // --- Configuration Data ---
-    const monthDaysMap = {
-        0: 31, 1: 28, 2: 31, 3: 30, 4: 31, 5: 30, 
-        6: 31, 7: 31, 8: 30, 9: 31, 10: 30, 11: 31
-    };
-
     const monthNames = [
         "January", "February", "March", "April", "May", "June", 
         "July", "August", "September", "October", "November", "December"
     ];
-
-    // --- Utility Functions ---
 
     /**
      * Updates the label and placeholder for the day input field based on the selected radio button.
@@ -175,7 +163,7 @@
         const label = document.getElementById('dayInputLabel');
         const input = document.getElementById('dayInput');
         
-        // Clear the input value when switching modes to avoid confusion
+        // Clear the input value when switching modes to prompt new entry
         input.value = '';
 
         if (mode === 'present') {
@@ -189,7 +177,7 @@
     }
 
     /**
-     * Populates the month dropdown and handles leap year/auto-selection.
+     * Populates the month dropdown and handles auto-selection.
      */
     function setupMonthDropdown() {
         const selectElement = document.getElementById('selectMonth');
@@ -197,12 +185,8 @@
         const currentMonthIndex = today.getMonth();
         const currentYear = today.getFullYear();
         
-        // Handle February for the current year (Leap Year Check)
-        const isLeapYear = currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0);
-        monthDaysMap[1] = isLeapYear ? 29 : 28;
-
         monthNames.forEach((month, index) => {
-            // Use the date object for a safer way to get days in month
+            // Safer way to get days in month for any year
             const days = new Date(currentYear, index + 1, 0).getDate(); 
             const option = document.createElement('option');
             // Store number of days in the value attribute
@@ -215,14 +199,13 @@
             selectElement.appendChild(option);
         });
         
-        // Add event listeners to trigger calculation
+        // Add event listeners for dynamic updates
         document.getElementById('monthlySalary').addEventListener('input', calculatePayment);
         document.getElementById('dayInput').addEventListener('input', calculatePayment);
         document.getElementById('selectMonth').addEventListener('change', calculatePayment);
         
         // Initial setup and calculation
-        updateInputLabel(); // Ensure the label is correct initially
-        calculatePayment(); 
+        updateInputLabel(); 
     }
 
     /**
@@ -235,7 +218,7 @@
         const totalDaysInMonth = parseFloat(document.getElementById('selectMonth').value);
         const mode = document.querySelector('input[name="dayMode"]:checked').value;
         
-        // 2. Initial Validation (If inputs are blank or invalid, show zeros/errors)
+        // 2. Initial Validation (Handle empty or invalid inputs)
         if (isNaN(monthlySalary) || isNaN(inputDays) || monthlySalary < 0 || totalDaysInMonth === 0) {
             document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
             document.getElementById('totalIncomeDisplay').textContent = '₹ 0.00';
@@ -253,7 +236,7 @@
             presentDays = totalDaysInMonth - inputDays;
         }
 
-        // Final Validation for present days
+        // Final Validation for valid day count
         if (presentDays < 0 || presentDays > totalDaysInMonth) {
              document.getElementById('calculatedPresentDaysDisplay').textContent = 'Error (Invalid Days)';
              document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
@@ -262,11 +245,9 @@
         }
 
         // 4. Calculate Daily Income (D)
-        // Daily Income = Monthly Salary / Total Days in Month
         const dailyIncome = monthlySalary / totalDaysInMonth;
 
         // 5. Calculate Total Income (T)
-        // Total Income = Daily Income * Actual Present Days
         const totalIncome = dailyIncome * presentDays;
 
         // 6. Display Results
