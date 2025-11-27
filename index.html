@@ -3,148 +3,372 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Salary Calculator</title>
+    <title>Modern Salary Calculator</title>
     <style>
+        :root {
+            --primary-color: #2563eb; /* Modern Blue */
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --success-bg: #ecfdf5;
+            --success-text: #059669;
+            --danger-text: #dc2626;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            align-items: flex-start; /* Align top for long content */
         }
 
-        .container {
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        .main-wrapper {
             width: 100%;
-            max-width: 450px; 
+            max-width: 1200px; /* Limits width on huge 4k screens */
+            background-color: transparent;
         }
 
-        h2 {
+        .header {
             text-align: center;
-            color: #333;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 10px;
+            margin-bottom: 30px;
         }
 
+        .header h2 {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 1.8rem;
+        }
+
+        /* --- GRID LAYOUT --- */
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Default mobile: 1 column */
+            gap: 25px;
+        }
+
+        /* Desktop Split: 50/50 */
+        @media (min-width: 900px) {
+            .calculator-grid {
+                grid-template-columns: 1fr 1fr; /* Two equal columns */
+                align-items: start;
+            }
+        }
+
+        /* --- CARDS --- */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        /* --- FORM ELEMENTS --- */
         .form-row {
-            display: flex;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             margin-bottom: 20px;
         }
 
         .form-group {
             margin-bottom: 20px;
-            flex: 1;
-            min-width: 0;
         }
 
         label {
             display: block;
             margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        .sub-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
         }
 
         input[type="number"], select {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             box-sizing: border-box;
-            font-size: 16px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: #fff;
         }
 
-        /* Styling for the radio button group */
-        .radio-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-            margin-bottom: 10px;
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        .radio-group label {
-            font-weight: normal;
-            margin-bottom: 0;
+        /* --- MODERN RADIO TOGGLE --- */
+        .toggle-container {
             display: flex;
-            align-items: center;
+            background-color: #f3f4f6;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .toggle-container label {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            margin: 0;
             cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: var(--text-muted);
         }
 
-        .radio-group input[type="radio"] {
-            margin-right: 5px;
-            width: auto;
+        /* Hide actual radio inputs */
+        .toggle-container input[type="radio"] {
+            display: none;
+        }
+
+        /* Active State for Radio */
+        .toggle-container input[type="radio"]:checked + span {
+            background-color: white;
+            color: var(--primary-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            font-weight: 700;
+            display: block;
+            height: 100%;
+            padding: 10px;
+            border-radius: 8px;
         }
         
-        /* Removed button styling */
-
-        .result-box {
-            margin-top: 25px;
-            padding: 15px;
-            border: 2px solid #28a745;
+        /* Non-active span style */
+        .toggle-container span {
+            display: block;
+            padding: 10px;
             border-radius: 8px;
-            background-color: #e6f7ea;
         }
 
-        .result-box p {
-            margin: 5px 0;
-            font-size: 16px;
-            color: #333;
+        /* --- ABSENT SETTINGS PANEL --- */
+        .absent-settings {
+            background-color: #fffbeb; /* Light yellow */
+            border: 1px solid #fcd34d;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            animation: slideDown 0.3s ease-out;
+            display: none;
         }
 
-        .result-box strong {
-            color: #007bff;
-            font-size: 1.1em;
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
+
+        .section-title {
+            color: #92400e;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- RESULT SECTION --- */
+        .result-card {
+            background-color: #f8fafc; /* Very light slate */
+            border: 1px solid var(--border-color);
+            /* Make it sticky on desktop */
+            position: sticky;
+            top: 20px; 
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 1.1rem;
+        }
+
+        .big-total {
+            background-color: var(--success-bg);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+            border: 1px solid #a7f3d0;
+        }
+
+        .big-total .label {
+            color: var(--success-text);
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .big-total .value {
+            color: var(--success-text);
+            font-size: 2rem;
+            font-weight: 800;
+            display: block;
+        }
+
+        .breakdown-list {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .deduction-text {
+            color: var(--danger-text);
+        }
+
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2> GKS <BR>💰 Dynamic Salary Calculator</h2>
-
-    <div class="form-row">
-        <div class="form-group">
-            <label for="monthlySalary">Monthly Salary (₹):</label>
-            <input type="number" id="monthlySalary" placeholder="e.g., 31000" min="0">
-        </div>
-
-        <div class="form-group">
-            <label for="selectMonth">Month:</label>
-            <select id="selectMonth"></select>
-        </div>
+<div class="main-wrapper">
+    <div class="header">
+        <h2>GKS Salary Calculator</h2>
     </div>
 
-    <div class="form-group" style="margin-bottom: 0;">
-        <label>Enter:</label>
-        <div class="radio-group">
-            <label for="modePresent">
-                <input type="radio" id="modePresent" name="dayMode" value="present" checked onchange="updateInputLabel()">
-                Total Present Days
-            </label>
-            <label for="modeAbsent">
-                <input type="radio" id="modeAbsent" name="dayMode" value="absent" onchange="updateInputLabel()">
-                Total Absent Days
-            </label>
-        </div>
-    </div>
-    
-    <div class="form-group" style="margin-top: 10px;">
-        <label id="dayInputLabel" for="dayInput">Total Present Days (e.g., 27.5):</label>
-        <input type="number" id="dayInput" placeholder="e.g., 27.5" min="0" step="0.5">
-    </div>
+    <div class="calculator-grid">
+        
+        <div class="card">
+            
+            <div class="form-row">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label for="monthlySalary">Monthly Salary (₹)</label>
+                    <input type="number" id="monthlySalary" placeholder="31000" min="0">
+                </div>
 
-    <div class="result-box" id="result">
-        <p>Total Days in Month: <strong id="totalDaysInMonthDisplay">0</strong></p>
-        <p>Calculated Present Days: <strong id="calculatedPresentDaysDisplay">0</strong></p>
-        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 10px 0;">
-        <p>Calculated Daily Income: <strong id="dailyIncomeDisplay">₹ 0.00</strong></p>
-        <p>Final Total Income: <strong id="totalIncomeDisplay">₹ 0.00</strong></p>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label for="selectMonth">Month</label>
+                    <select id="selectMonth"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Calculation Mode</label>
+                <div class="toggle-container">
+                    <label>
+                        <input type="radio" id="modePresent" name="dayMode" value="present" checked onchange="updateUI()">
+                        <span>Total Present Days</span>
+                    </label>
+                    <label>
+                        <input type="radio" id="modeAbsent" name="dayMode" value="absent" onchange="updateUI()">
+                        <span>Total Absent Days</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label id="dayInputLabel" for="dayInput">Total Present Days</label>
+                <input type="number" id="dayInput" placeholder="e.g., 27.5" min="0" step="0.5">
+            </div>
+
+            <div id="absentSettingsPanel" class="absent-settings">
+                <h4 class="section-title">⚠️ Penalty & Deduction Rules</h4>
+                
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="sandwichSundays">Sandwich Sundays</label>
+                        <span class="sub-label">Sat & Mon absent = Sun deduced</span>
+                        <input type="number" id="sandwichSundays" value="0" min="0">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="penaltyThreshold">Penalty Divisor</label>
+                        <span class="sub-label">Deduct 1 day per X leaves</span>
+                        <input type="number" id="penaltyThreshold" value="3" min="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card result-card" id="result">
+            <div class="result-header">Calculation Summary</div>
+
+            <div class="result-item">
+                <span class="result-label">Days in Month</span>
+                <span class="result-value" id="totalDaysInMonthDisplay">0</span>
+            </div>
+
+            <div id="breakdownSection" style="display:none;">
+                <div class="breakdown-list">
+                    <div class="result-item" style="border:none; padding: 5px 0;">
+                        <span class="result-label">Working Absent</span>
+                        <span class="result-value deduction-text">-<span id="bdWorking">0</span></span>
+                    </div>
+                    <div class="result-item" style="border:none; padding: 5px 0;">
+                        <span class="result-label">Sandwich Sunday</span>
+                        <span class="result-value deduction-text">-<span id="bdSunday">0</span></span>
+                    </div>
+                    <div class="result-item" style="border:none; padding: 5px 0;">
+                        <span class="result-label">Penalty Days</span>
+                        <span class="result-value deduction-text">-<span id="bdPenalty">0</span></span>
+                    </div>
+                    <div style="border-top: 1px solid #eee; margin-top: 5px; padding-top: 5px; text-align: right; font-size: 0.9em; color: var(--danger-text); font-weight: bold;">
+                        Total Deduction: <span id="bdTotal">0</span> days
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Final Payable Days</span>
+                <span class="result-value" style="color: var(--primary-color);" id="calculatedPresentDaysDisplay">0</span>
+            </div>
+
+            <div class="result-item">
+                <span class="result-label">Per Day Income</span>
+                <span class="result-value" id="dailyIncomeDisplay">₹ 0.00</span>
+            </div>
+
+            <div class="big-total">
+                <span class="label">Final Salary Pay</span>
+                <span class="value" id="totalIncomeDisplay">₹ 0.00</span>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -155,30 +379,6 @@
         "July", "August", "September", "October", "November", "December"
     ];
 
-    /**
-     * Updates the label and placeholder for the day input field based on the selected radio button.
-     */
-    function updateInputLabel() {
-        const mode = document.querySelector('input[name="dayMode"]:checked').value;
-        const label = document.getElementById('dayInputLabel');
-        const input = document.getElementById('dayInput');
-        
-        // Clear the input value when switching modes to prompt new entry
-        input.value = '';
-
-        if (mode === 'present') {
-            label.textContent = 'Total Present Days (e.g., 27.5):';
-            input.placeholder = 'e.g., 27.5';
-        } else {
-            label.textContent = 'Total Absent Days (e.g., 3.5):';
-            input.placeholder = 'e.g., 3.5';
-        }
-        calculatePayment(); // Recalculate after changing mode
-    }
-
-    /**
-     * Populates the month dropdown and handles auto-selection.
-     */
     function setupMonthDropdown() {
         const selectElement = document.getElementById('selectMonth');
         const today = new Date();
@@ -186,10 +386,8 @@
         const currentYear = today.getFullYear();
         
         monthNames.forEach((month, index) => {
-            // Safer way to get days in month for any year
             const days = new Date(currentYear, index + 1, 0).getDate(); 
             const option = document.createElement('option');
-            // Store number of days in the value attribute
             option.value = days; 
             option.textContent = `${month} (${days} days)`;
             
@@ -199,72 +397,104 @@
             selectElement.appendChild(option);
         });
         
-        // Add event listeners for dynamic updates
-        document.getElementById('monthlySalary').addEventListener('input', calculatePayment);
-        document.getElementById('dayInput').addEventListener('input', calculatePayment);
-        document.getElementById('selectMonth').addEventListener('change', calculatePayment);
+        // Add Listeners
+        const inputs = ['monthlySalary', 'dayInput', 'selectMonth', 'sandwichSundays', 'penaltyThreshold'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', calculatePayment);
+        });
         
-        // Initial setup and calculation
-        updateInputLabel(); 
+        updateUI(); 
     }
 
-    /**
-     * Calculates the daily and total income based on user inputs and mode.
-     */
+    function updateUI() {
+        const mode = document.querySelector('input[name="dayMode"]:checked').value;
+        const label = document.getElementById('dayInputLabel');
+        const input = document.getElementById('dayInput');
+        const absentPanel = document.getElementById('absentSettingsPanel');
+        const breakdownSection = document.getElementById('breakdownSection');
+        
+        // Reset input to avoid confusion on switch
+        input.value = '';
+
+        if (mode === 'present') {
+            label.textContent = 'Total Present Days';
+            input.placeholder = 'e.g., 27.5';
+            absentPanel.style.display = 'none';
+            breakdownSection.style.display = 'none';
+        } else {
+            label.textContent = 'Working Days Absent (Leave)';
+            input.placeholder = 'e.g., 8';
+            absentPanel.style.display = 'block';
+            breakdownSection.style.display = 'block';
+        }
+        calculatePayment();
+    }
+
     function calculatePayment() {
         // 1. Get Inputs
-        const monthlySalary = parseFloat(document.getElementById('monthlySalary').value);
-        const inputDays = parseFloat(document.getElementById('dayInput').value);
+        const monthlySalary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+        const inputDays = parseFloat(document.getElementById('dayInput').value) || 0;
         const totalDaysInMonth = parseFloat(document.getElementById('selectMonth').value);
         const mode = document.querySelector('input[name="dayMode"]:checked').value;
-        
-        // 2. Initial Validation (Handle empty or invalid inputs)
-        if (isNaN(monthlySalary) || isNaN(inputDays) || monthlySalary < 0 || totalDaysInMonth === 0) {
-            document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
-            document.getElementById('totalIncomeDisplay').textContent = '₹ 0.00';
-            document.getElementById('calculatedPresentDaysDisplay').textContent = '0';
-            document.getElementById('totalDaysInMonthDisplay').textContent = totalDaysInMonth ? `${totalDaysInMonth} days` : '0';
-            return;
-        }
-        
-        // 3. Determine Actual Present Days (P)
-        let presentDays;
-        
+
+        // Extra Absent Settings
+        const sandwichSundays = parseFloat(document.getElementById('sandwichSundays').value) || 0;
+        const penaltyThreshold = parseFloat(document.getElementById('penaltyThreshold').value) || 0;
+
+        let finalPayableDays = 0;
+
+        // 2. Logic Selection
         if (mode === 'present') {
-            presentDays = inputDays;
-        } else { // mode === 'absent'
-            presentDays = totalDaysInMonth - inputDays;
+            finalPayableDays = inputDays;
+            document.getElementById('breakdownSection').style.display = 'none';
+        } else {
+            // --- ABSENT MODE LOGIC ---
+            document.getElementById('breakdownSection').style.display = 'block';
+
+            // A. Base Working Absent
+            const workingDaysAbsent = inputDays;
+
+            // B. Sandwich Sunday Deduction
+            const sundayDeduction = sandwichSundays;
+
+            // C. Penalty Calculation
+            let penaltyDeduction = 0;
+            if (penaltyThreshold > 0 && workingDaysAbsent > 0) {
+                penaltyDeduction = Math.floor(workingDaysAbsent / penaltyThreshold);
+            }
+
+            // D. Total Deduction
+            const totalDeduction = workingDaysAbsent + sundayDeduction + penaltyDeduction;
+
+            // E. Calculate Payable
+            finalPayableDays = totalDaysInMonth - totalDeduction;
+
+            if (finalPayableDays < 0) finalPayableDays = 0;
+
+            // Update Breakdown Display
+            document.getElementById('bdWorking').textContent = workingDaysAbsent;
+            document.getElementById('bdSunday').textContent = sundayDeduction;
+            document.getElementById('bdPenalty').textContent = penaltyDeduction;
+            document.getElementById('bdTotal').textContent = totalDeduction;
         }
 
-        // Final Validation for valid day count
-        if (presentDays < 0 || presentDays > totalDaysInMonth) {
-             document.getElementById('calculatedPresentDaysDisplay').textContent = 'Error (Invalid Days)';
-             document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
-             document.getElementById('totalIncomeDisplay').textContent = '₹ 0.00';
-             return;
-        }
+        // 3. Financial Calculation
+        const dailyIncome = totalDaysInMonth > 0 ? (monthlySalary / totalDaysInMonth) : 0;
+        const totalIncome = dailyIncome * finalPayableDays;
 
-        // 4. Calculate Daily Income (D)
-        const dailyIncome = monthlySalary / totalDaysInMonth;
-
-        // 5. Calculate Total Income (T)
-        const totalIncome = dailyIncome * presentDays;
-
-        // 6. Display Results
+        // 4. Formatting
         const formatter = new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 2
         });
-        
-        document.getElementById('totalDaysInMonthDisplay').textContent = `${totalDaysInMonth} days`;
-        document.getElementById('calculatedPresentDaysDisplay').textContent = `${presentDays.toFixed(1)} days`;
+
+        document.getElementById('totalDaysInMonthDisplay').textContent = totalDaysInMonth;
+        document.getElementById('calculatedPresentDaysDisplay').textContent = finalPayableDays.toFixed(1);
         document.getElementById('dailyIncomeDisplay').textContent = formatter.format(dailyIncome);
         document.getElementById('totalIncomeDisplay').textContent = formatter.format(totalIncome);
     }
 
-    // Initialize the application when the page loads
     window.onload = setupMonthDropdown;
 </script>
 
