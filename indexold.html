@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Salary Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px; 
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        /* Styling for the radio button group */
+        .radio-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .radio-group label {
+            font-weight: normal;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            margin-right: 5px;
+            width: auto;
+        }
+        
+        /* Removed button styling */
+
+        .result-box {
+            margin-top: 25px;
+            padding: 15px;
+            border: 2px solid #28a745;
+            border-radius: 8px;
+            background-color: #e6f7ea;
+        }
+
+        .result-box p {
+            margin: 5px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .result-box strong {
+            color: #007bff;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2> GKS <BR>💰 Dynamic Salary Calculator</h2>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="monthlySalary">Monthly Salary (₹):</label>
+            <input type="number" id="monthlySalary" placeholder="e.g., 31000" min="0">
+        </div>
+
+        <div class="form-group">
+            <label for="selectMonth">Month:</label>
+            <select id="selectMonth"></select>
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom: 0;">
+        <label>Enter:</label>
+        <div class="radio-group">
+            <label for="modePresent">
+                <input type="radio" id="modePresent" name="dayMode" value="present" checked onchange="updateInputLabel()">
+                Total Present Days
+            </label>
+            <label for="modeAbsent">
+                <input type="radio" id="modeAbsent" name="dayMode" value="absent" onchange="updateInputLabel()">
+                Total Absent Days
+            </label>
+        </div>
+    </div>
+    
+    <div class="form-group" style="margin-top: 10px;">
+        <label id="dayInputLabel" for="dayInput">Total Present Days (e.g., 27.5):</label>
+        <input type="number" id="dayInput" placeholder="e.g., 27.5" min="0" step="0.5">
+    </div>
+
+    <div class="result-box" id="result">
+        <p>Total Days in Month: <strong id="totalDaysInMonthDisplay">0</strong></p>
+        <p>Calculated Present Days: <strong id="calculatedPresentDaysDisplay">0</strong></p>
+        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 10px 0;">
+        <p>Calculated Daily Income: <strong id="dailyIncomeDisplay">₹ 0.00</strong></p>
+        <p>Final Total Income: <strong id="totalIncomeDisplay">₹ 0.00</strong></p>
+    </div>
+</div>
+
+<script>
+    // --- Configuration Data ---
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June", 
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    /**
+     * Updates the label and placeholder for the day input field based on the selected radio button.
+     */
+    function updateInputLabel() {
+        const mode = document.querySelector('input[name="dayMode"]:checked').value;
+        const label = document.getElementById('dayInputLabel');
+        const input = document.getElementById('dayInput');
+        
+        // Clear the input value when switching modes to prompt new entry
+        input.value = '';
+
+        if (mode === 'present') {
+            label.textContent = 'Total Present Days (e.g., 27.5):';
+            input.placeholder = 'e.g., 27.5';
+        } else {
+            label.textContent = 'Total Absent Days (e.g., 3.5):';
+            input.placeholder = 'e.g., 3.5';
+        }
+        calculatePayment(); // Recalculate after changing mode
+    }
+
+    /**
+     * Populates the month dropdown and handles auto-selection.
+     */
+    function setupMonthDropdown() {
+        const selectElement = document.getElementById('selectMonth');
+        const today = new Date();
+        const currentMonthIndex = today.getMonth();
+        const currentYear = today.getFullYear();
+        
+        monthNames.forEach((month, index) => {
+            // Safer way to get days in month for any year
+            const days = new Date(currentYear, index + 1, 0).getDate(); 
+            const option = document.createElement('option');
+            // Store number of days in the value attribute
+            option.value = days; 
+            option.textContent = `${month} (${days} days)`;
+            
+            if (index === currentMonthIndex) {
+                option.selected = true;
+            }
+            selectElement.appendChild(option);
+        });
+        
+        // Add event listeners for dynamic updates
+        document.getElementById('monthlySalary').addEventListener('input', calculatePayment);
+        document.getElementById('dayInput').addEventListener('input', calculatePayment);
+        document.getElementById('selectMonth').addEventListener('change', calculatePayment);
+        
+        // Initial setup and calculation
+        updateInputLabel(); 
+    }
+
+    /**
+     * Calculates the daily and total income based on user inputs and mode.
+     */
+    function calculatePayment() {
+        // 1. Get Inputs
+        const monthlySalary = parseFloat(document.getElementById('monthlySalary').value);
+        const inputDays = parseFloat(document.getElementById('dayInput').value);
+        const totalDaysInMonth = parseFloat(document.getElementById('selectMonth').value);
+        const mode = document.querySelector('input[name="dayMode"]:checked').value;
+        
+        // 2. Initial Validation (Handle empty or invalid inputs)
+        if (isNaN(monthlySalary) || isNaN(inputDays) || monthlySalary < 0 || totalDaysInMonth === 0) {
+            document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
+            document.getElementById('totalIncomeDisplay').textContent = '₹ 0.00';
+            document.getElementById('calculatedPresentDaysDisplay').textContent = '0';
+            document.getElementById('totalDaysInMonthDisplay').textContent = totalDaysInMonth ? `${totalDaysInMonth} days` : '0';
+            return;
+        }
+        
+        // 3. Determine Actual Present Days (P)
+        let presentDays;
+        
+        if (mode === 'present') {
+            presentDays = inputDays;
+        } else { // mode === 'absent'
+            presentDays = totalDaysInMonth - inputDays;
+        }
+
+        // Final Validation for valid day count
+        if (presentDays < 0 || presentDays > totalDaysInMonth) {
+             document.getElementById('calculatedPresentDaysDisplay').textContent = 'Error (Invalid Days)';
+             document.getElementById('dailyIncomeDisplay').textContent = '₹ 0.00';
+             document.getElementById('totalIncomeDisplay').textContent = '₹ 0.00';
+             return;
+        }
+
+        // 4. Calculate Daily Income (D)
+        const dailyIncome = monthlySalary / totalDaysInMonth;
+
+        // 5. Calculate Total Income (T)
+        const totalIncome = dailyIncome * presentDays;
+
+        // 6. Display Results
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+        
+        document.getElementById('totalDaysInMonthDisplay').textContent = `${totalDaysInMonth} days`;
+        document.getElementById('calculatedPresentDaysDisplay').textContent = `${presentDays.toFixed(1)} days`;
+        document.getElementById('dailyIncomeDisplay').textContent = formatter.format(dailyIncome);
+        document.getElementById('totalIncomeDisplay').textContent = formatter.format(totalIncome);
+    }
+
+    // Initialize the application when the page loads
+    window.onload = setupMonthDropdown;
+</script>
+
+</body>
+</html>
