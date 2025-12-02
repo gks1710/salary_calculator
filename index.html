@@ -215,6 +215,15 @@
         .result-item:last-child {
             border-bottom: none;
         }
+        
+        /* New style for the main deduction item */
+        .result-item.total-deduction-row {
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding: 15px 0;
+        }
 
         .result-label {
             color: var(--text-muted);
@@ -258,10 +267,15 @@
             border: 1px solid var(--border-color);
         }
         
-        .deduction-text {
+        .deduction-value { /* Use this for financial deduction amounts */
+            color: var(--danger-text);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .deduction-text { /* Use this for the days breakdown */
             color: var(--danger-text);
         }
-
     </style>
 </head>
 <body>
@@ -327,7 +341,11 @@
 
         <div class="card result-card" id="result">
             <div class="result-header">Calculation Summary</div>
-
+            
+            <div class="result-item" style="border-top: none; padding-top: 0;">
+                <span class="result-label" style="font-weight: 600;">Total Monthly Earning (Gross)</span>
+                <span class="result-value" id="grossMonthlyEarningDisplay">₹ 0.00</span>
+            </div>
             <div class="result-item">
                 <span class="result-label">Days in Month</span>
                 <span class="result-value" id="totalDaysInMonthDisplay">0</span>
@@ -348,7 +366,7 @@
                         <span class="result-value deduction-text">-<span id="bdPenalty">0</span></span>
                     </div>
                     <div style="border-top: 1px solid #eee; margin-top: 5px; padding-top: 5px; text-align: right; font-size: 0.9em; color: var(--danger-text); font-weight: bold;">
-                        Total Deduction: <span id="bdTotal">0</span> days
+                        Total Deduction Days: <span id="bdTotal">0</span> days
                     </div>
                 </div>
             </div>
@@ -362,9 +380,13 @@
                 <span class="result-label">Per Day Income</span>
                 <span class="result-value" id="dailyIncomeDisplay">₹ 0.00</span>
             </div>
-
+            
+            <div class="result-item total-deduction-row">
+                <span class="result-label" style="font-weight: 600;">Total Loss/Deduction</span>
+                <span class="deduction-value" id="totalLossDisplay">₹ 0.00</span>
+            </div>
             <div class="big-total">
-                <span class="label">Final Salary Pay</span>
+                <span class="label">Final Salary Pay (Net)</span>
                 <span class="value" id="totalIncomeDisplay">₹ 0.00</span>
             </div>
         </div>
@@ -425,7 +447,7 @@
             label.textContent = 'Working Days Absent (Leave)';
             input.placeholder = 'e.g., 8';
             absentPanel.style.display = 'block';
-            breakdownSection.style.display = 'block';
+            // Note: breakdownSection is controlled by calculatePayment on 'absent' mode too
         }
         calculatePayment();
     }
@@ -442,10 +464,14 @@
         const penaltyThreshold = parseFloat(document.getElementById('penaltyThreshold').value) || 0;
 
         let finalPayableDays = 0;
+        let totalDeductionDays = 0;
 
         // 2. Logic Selection
         if (mode === 'present') {
             finalPayableDays = inputDays;
+            totalDeductionDays = totalDaysInMonth - finalPayableDays;
+            if (totalDeductionDays < 0) totalDeductionDays = 0;
+            
             document.getElementById('breakdownSection').style.display = 'none';
         } else {
             // --- ABSENT MODE LOGIC ---
@@ -463,24 +489,27 @@
                 penaltyDeduction = Math.floor(workingDaysAbsent / penaltyThreshold);
             }
 
-            // D. Total Deduction
-            const totalDeduction = workingDaysAbsent + sundayDeduction + penaltyDeduction;
+            // D. Total Deduction Days
+            totalDeductionDays = workingDaysAbsent + sundayDeduction + penaltyDeduction;
 
             // E. Calculate Payable
-            finalPayableDays = totalDaysInMonth - totalDeduction;
+            finalPayableDays = totalDaysInMonth - totalDeductionDays;
 
             if (finalPayableDays < 0) finalPayableDays = 0;
 
             // Update Breakdown Display
-            document.getElementById('bdWorking').textContent = workingDaysAbsent;
-            document.getElementById('bdSunday').textContent = sundayDeduction;
+            document.getElementById('bdWorking').textContent = workingDaysAbsent.toFixed(1);
+            document.getElementById('bdSunday').textContent = sundayDeduction.toFixed(1);
             document.getElementById('bdPenalty').textContent = penaltyDeduction;
-            document.getElementById('bdTotal').textContent = totalDeduction;
+            document.getElementById('bdTotal').textContent = totalDeductionDays.toFixed(1);
         }
 
         // 3. Financial Calculation
         const dailyIncome = totalDaysInMonth > 0 ? (monthlySalary / totalDaysInMonth) : 0;
         const totalIncome = dailyIncome * finalPayableDays;
+        
+        // NEW: Calculate Total Loss
+        const totalLoss = dailyIncome * totalDeductionDays;
 
         // 4. Formatting
         const formatter = new Intl.NumberFormat('en-IN', {
@@ -489,9 +518,12 @@
             minimumFractionDigits: 2
         });
 
+        // 5. Update Display
+        document.getElementById('grossMonthlyEarningDisplay').textContent = formatter.format(monthlySalary); // NEW
         document.getElementById('totalDaysInMonthDisplay').textContent = totalDaysInMonth;
         document.getElementById('calculatedPresentDaysDisplay').textContent = finalPayableDays.toFixed(1);
         document.getElementById('dailyIncomeDisplay').textContent = formatter.format(dailyIncome);
+        document.getElementById('totalLossDisplay').textContent = formatter.format(totalLoss); // NEW
         document.getElementById('totalIncomeDisplay').textContent = formatter.format(totalIncome);
     }
 
